@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="et">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Garden Resto · Print</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css">
+
+<style>
+  /* ── Hide tweaks/UI elements that don't make sense in print ── */
+  .tweaks-panel, .tweaks-trigger, [data-tweaks-panel] { display: none !important; }
+
+  /* ── Print rules ── */
+  @page { size: A4 portrait; margin: 12mm; }
+
+  @media print {
+    html, body {
+      background: var(--cream) !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    /* Sticky header → static at top */
+    .site-header {
+      position: static !important;
+      background: transparent !important;
+      backdrop-filter: none !important;
+      border-bottom: 1px solid var(--paper-line) !important;
+    }
+    .site-header .nav,
+    .site-header .lang,
+    .site-header .btn--small { display: none !important; }
+    .site-header__inner { padding: 8mm var(--gutter) !important; }
+
+    /* Hero — keep on first page */
+    .hero { padding-top: 8mm !important; padding-bottom: 8mm !important; break-after: page; }
+
+    /* Each major section starts a new page */
+    section.story,
+    section#atmosphere,
+    section.breakfast,
+    section#kitchen,
+    section.desserts,
+    section#menu,
+    section.events,
+    section.contact {
+      break-before: page;
+      padding: 6mm 0 !important;
+    }
+
+    /* Force dark backgrounds to print */
+    .breakfast, .events {
+      background: var(--ink) !important;
+      color: var(--cream) !important;
+    }
+    .story, .desserts {
+      background: var(--cream-deep) !important;
+    }
+
+    /* Avoid splitting cards */
+    .timeline__item,
+    article,
+    .menu__item,
+    .map-card,
+    .form,
+    .footer-mark { break-inside: avoid; }
+
+    .menu__cats > div { break-inside: avoid; }
+
+    /* Hide tweaks UI */
+    .tweaks-panel, [data-tweaks-panel], .tweaks-trigger { display: none !important; }
+
+    /* No animations */
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+
+    /* Links — keep visual but no underline noise */
+    a { color: inherit; }
+
+    /* Hide map iframe (browsers won't render iframes well in print) — show static label */
+    .map-card iframe { display: none !important; }
+    .map-card {
+      background: var(--cream-deep);
+      display: grid !important;
+      place-items: center;
+    }
+    .map-card::after {
+      content: "Vana-Kalamaja 7a · Tallinn";
+      font-family: var(--display);
+      font-size: 22px;
+      color: var(--ink);
+    }
+    .map-card__pin { display: none; }
+
+    /* Form is contact-only in events block — keep but make it look clean */
+    .form { background: oklch(28% 0.02 50) !important; }
+
+    /* Hours table looks fine. Today highlight should print */
+    .hours-table tr.is-today { background: oklch(96% 0.04 60) !important; }
+
+    /* Footer mark — keep big but allow shrink */
+    .footer-mark__logo { width: clamp(220px, 55%, 540px) !important; }
+
+    /* Big section labels — keep */
+    .section-label { color: var(--ink-faint) !important; }
+
+    /* Ensure images don't overflow */
+    img { max-width: 100% !important; }
+  }
+
+  /* On screen (preview before print), show the page in a clean state too */
+  body.is-print-preview .tweaks-panel,
+  body.is-print-preview [data-tweaks-panel] { display: none !important; }
+</style>
+</head>
+<body class="is-print-preview">
+<div id="root"></div>
+
+<script src="copy.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+
+<script type="text/babel">
+  // Wait for fonts, React render, and images, then auto-print
+  (async function autoPrint() {
+    try {
+      // Wait for fonts
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
+      // Wait for React to render
+      const waitForRoot = () => new Promise((resolve) => {
+        const check = () => {
+          if (document.querySelector("#root .site-header")) resolve();
+          else requestAnimationFrame(check);
+        };
+        check();
+      });
+      await waitForRoot();
+      // Wait for images
+      const imgs = Array.from(document.images);
+      await Promise.all(imgs.map(img =>
+        img.complete ? Promise.resolve() :
+        new Promise(r => { img.onload = img.onerror = r; })
+      ));
+      // Settle
+      await new Promise(r => setTimeout(r, 800));
+      window.print();
+    } catch (e) { console.error("autoPrint", e); }
+  })();
+</script>
+</body>
+</html>

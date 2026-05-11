@@ -56,10 +56,9 @@ function Header({ lang, setLang, t, onReserveClick }) {
 }
 
 /* ───── Placeholder ───── */
-function Placeholder({ label, variant = "", src }) {
+function Placeholder({ label, variant = "" }) {
   return (
-      <div className={"placeholder " + (variant ? "placeholder--" + variant : "")} style={ src ? { backgroundImage: `url(${src})`, backgroundSize: "cover", backgroundPosition: "center center" } : { backgroundSize: "cover", backgroundPosition: "center center" }}>
-
+    <div className={"placeholder " + (variant ? "placeholder--" + variant : "")} style={{ backgroundSize: "cover", backgroundPosition: "center center" }}>
       <span className="placeholder__label">{label}</span>
     </div>);
 
@@ -88,7 +87,7 @@ function Hero({ t }) {
           </div>
         </div>
         <div className="hero__visual">
-          <Placeholder label="Hero — guests at a window table" variant="dark" />
+          <img src="assets/hero.jpeg" alt="Guest reading at a window table" className="hero__img" />
         </div>
       </div>
     </section>);
@@ -109,7 +108,7 @@ function Story({ t }) {
             </div>
           </div>
           <div className="story__portrait">
-            <Placeholder label="Family portrait — Vyacheslav & Tatiana" />
+            <img src="assets/family.png" alt="Vyacheslav and Tatiana" className="story__portrait-img" />
           </div>
         </div>
 
@@ -136,11 +135,11 @@ function Comeback({ t }) {
         <h2 className="display comeback__heading">{t.comeback.heading}</h2>
         <p style={{ color: "var(--ink-soft)", maxWidth: "44ch" }}>{t.comeback.caption}</p>
         <div className="gallery">
-          <Placeholder label="Dining room — afternoon light" />
-          <Placeholder label="Bar / coffee corner" variant="leaf" />
-          <Placeholder label="Plated breakfast" variant="dark" />
-          <Placeholder label="Window seat, mug" />
-          <Placeholder label="Guests around a table" variant="terracotta" />
+          <div className="gallery__item"><img src="assets/dining.jpeg" alt="Dining room — afternoon light" /></div>
+          <div className="gallery__item"><img src="assets/coffee.jpeg" alt="Bar / coffee corner" /></div>
+          <div className="gallery__item"><img src="assets/breakfast.jpeg" alt="Plated breakfast" /></div>
+          <div className="gallery__item"><img src="assets/window-seat.jpeg" alt="Window seat with mug" /></div>
+          <div className="gallery__item"><img src="assets/guests.jpeg" alt="Guests around a table" /></div>
         </div>
       </div>
     </section>);
@@ -175,7 +174,10 @@ function Dishes({ t }) {
           {t.dishes.items.map((it, i) =>
           <article key={i}>
               <div className="dish__photo">
-                <Placeholder label="PHOTO" variant={i % 3 === 0 ? "" : i % 3 === 1 ? "dark" : "leaf"} />
+                {it.img
+                  ? <img src={it.img} alt={it.name} className="dish__photo-img" />
+                  : <Placeholder label="PHOTO" variant={i % 3 === 0 ? "" : i % 3 === 1 ? "dark" : "leaf"} />
+                }
               </div>
               <h3 className="dish__name">{it.name}</h3>
               <p className="dish__caption">{it.caption}</p>
@@ -205,8 +207,8 @@ function Desserts({ t, onOrder }) {
               </button>
             </div>
           </div>
-          <div style={{ aspectRatio: "4/5" }}>
-            <Placeholder label="Tatiana — at the dessert counter" variant="terracotta" />
+          <div className="story__portrait" style={{ aspectRatio: "4/5" }}>
+            <img src="assets/dessert-counter.jpeg" alt="Tatiana's desserts with coffee" className="story__portrait-img" />
           </div>
         </div>
 
@@ -216,10 +218,13 @@ function Desserts({ t, onOrder }) {
             {t.desserts.items.map((d, i) =>
             <article key={i}>
                 <div className="dessert__photo">
-                  <Placeholder label={d.name} variant={i % 2 === 0 ? "terracotta" : ""} />
+                  {d.img
+              ? <img src={d.img} alt={d.name} className="dessert__photo-img" />
+              : <Placeholder label={d.name} variant={i % 2 === 0 ? "terracotta" : ""} />
+              }
                 </div>
                 <h3 className="dessert__name">{d.name}</h3>
-                <p className="dessert__caption">{d.caption}</p>
+                {d.caption && <p className="dessert__caption">{d.caption}</p>}
               </article>
             )}
           </div>
@@ -266,29 +271,14 @@ function Menu({ t }) {
 /* ───── Events form ───── */
 function Events({ t, formRef }) {
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState(false);
   const [data, setData] = useState({ name: "", contact: "", date: "", guests: "", details: "" });
 
   const onChange = (k) => (e) => setData((d) => ({ ...d, [k]: e.target.value }));
-
-  const encode = (d) => Object.keys(d)
-    .map((k) => encodeURIComponent(k) + "=" + encodeURIComponent(d[k]))
-    .join("&");
-
   const submit = (e) => {
     e.preventDefault();
-    setError(false);
-    fetch("/", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: encode({ "form-name": "events", ...data }),
-    })
-      .then(() => {
-        setSent(true);
-        setTimeout(() => setSent(false), 4500);
-        setData({ name: "", contact: "", date: "", guests: "", details: "" });
-      })
-      .catch(() => setError(true));
+    setSent(true);
+    setTimeout(() => setSent(false), 4500);
+    setData({ name: "", contact: "", date: "", guests: "", details: "" });
   };
 
   return (
@@ -304,7 +294,6 @@ function Events({ t, formRef }) {
         <form className="form" onSubmit={submit}>
           <h3 className="form__title">{t.events.formTitle}</h3>
           {sent && <div className="form__success">{t.events.fields.sent}</div>}
-          {error && <div className="form__error">{t.events.fields.error}</div>}
           <div className="field">
             <label>{t.events.fields.name}</label>
             <input type="text" required value={data.name} onChange={onChange("name")} />
