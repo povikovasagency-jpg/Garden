@@ -56,9 +56,10 @@ function Header({ lang, setLang, t, onReserveClick }) {
 }
 
 /* ───── Placeholder ───── */
-function Placeholder({ label, variant = "" }) {
+function Placeholder({ label, variant = "", src }) {
   return (
-    <div className={"placeholder " + (variant ? "placeholder--" + variant : "")} style={{ backgroundSize: "cover", backgroundPosition: "center center" }}>
+      <div className={"placeholder " + (variant ? "placeholder--" + variant : "")} style={ src ? { backgroundImage: `url(${src})`, backgroundSize: "cover", backgroundPosition: "center center" } : { backgroundSize: "cover", backgroundPosition: "center center" }}>
+
       <span className="placeholder__label">{label}</span>
     </div>);
 
