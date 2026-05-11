@@ -388,8 +388,8 @@ function Contact({ t, onReserve }) {
             <div>
               <span className="mono contact__block-label">{t.contact.socialLabel}</span>
               <div className="socials">
-                <a href="#" target="_blank" rel="noopener">Instagram</a>
-                <a href="#" target="_blank" rel="noopener">Facebook</a>
+               href="https://www.instagram.com/gardenresto.tallinn/"
+                href="https://www.facebook.com/gardenresto.tallinn"
               </div>
             </div>
           </div>
